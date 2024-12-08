@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  maps      Map[]
+  content   Content[]
+}
+
+model Content {
+  id        String   @id @default(cuid())
+  name      String
+  user      User     @relation(fields: [email], references: [email])
+  email     String
+  type      ContentType
+  content   String
+}
+
+model Map {
+  id        String   @id @default(cuid())
+  name      String
+  user      User     @relation(fields: [email], references: [email], onDelete: Cascade)
+  email    String
+  nodes     Node[]   
+  edges     Edge[]  
+}
+
+model Edge {
+    id            String   @id
+    sourceNode    Node     @relation("EdgeSource",fields: [source], references: [id], onDelete: Cascade)
+    source        String
+    targetNode    Node     @relation("EdgeTarget",fields: [target], references: [id], onDelete: Cascade)
+    target        String
+    map           Map      @relation(fields: [mapId], references: [id])
+    mapId         String
+}
+
+
+model Node {
+  id            String   @id
+  type          NodeType
+  map           Map      @relation(fields: [mapId], references: [id])
+  mapId         String
+  data          Json
+  position      Json
+  incomingEdges Edge[]  @relation("EdgeTarget")
+  outgoingEdges Edge[]  @relation("EdgeSource")
+}
+
+
+
+enum ContentType {
+  BLOG
+  SUMMARY
+  ESSAY
+}
+
+enum NodeType {
+  dataNode
+  videoNode
+  titleNode
+  conceptNode
+  termNode
+}

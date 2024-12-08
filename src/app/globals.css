@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  :root {
+    --radius: 0.5rem
+  }
+}
+body, Button, a, p, .inter, input {
+  font-family: 'Inter', sans-serif; /* Default font for the body */
+}
+
+.merriweather {
+  font-family: 'Merriweather', serif; /* Apply Merriweather to specific elements */
+}
+
