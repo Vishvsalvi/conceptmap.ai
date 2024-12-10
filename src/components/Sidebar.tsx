@@ -25,6 +25,9 @@ import OptionsDialog from './OptionsDialog';
 import TermSelectionDialog from './TermSelectionDialog';
 import { useReactFlow } from '@xyflow/react';
 import { signOut } from 'next-auth/react'
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+
 type Props = {
   addNewNode: (content: string) => void;
   addDescriptionNode: (title: string, description: string) => string;
@@ -69,6 +72,7 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
   const [extractedWords, setExtractedWords] = useState<string[]>([])
   const [isConceptSelectionDialogOpen, setIsConceptSelectionDialogOpen] = useState(false);
   const [isLogout, setIsLogout] = useState(false)
+  const [isExpertMode, setIsExpertMode] = useState(false);
 
   const handleSignOut = () => {
     signOut();
@@ -84,7 +88,7 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
       if (!selectedNodeData) throw new Error("Please select or drag a node")
       setDialogOpen(true)
       setCurrentIntent(intent)
-      const { data } = await axios.post("/api/prompt", { intent, selectedNodeData })
+      const { data } = await axios.post("/api/prompt", { intent, selectedNodeData, isExpert:isExpertMode })
 
       return data
     },
@@ -131,10 +135,17 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
         <div className="space-y-2">
           {/* Top Dropdowns */}
           <div className="flex gap-1">
-
+           
+          <Switch
+          id="expert-mode"
+          checked={isExpertMode}
+          onCheckedChange={setIsExpertMode}
+        />
+        <Label htmlFor="expert-mode" className="text-sm font-medium">
+          Expert Mode
+        </Label>
 
           </div>
-
 
           {/* Button Grid */}
           <div className="grid grid-cols-2 gap-2">
@@ -266,6 +277,7 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
           isOpen={isOptionDialogOpen}
           onClose={() => setIsOptionDialogOpen(false)}
           intent={OptionsDialogIntent}
+          isExpertMode={isExpertMode}
 
         />
 
@@ -325,7 +337,7 @@ function FetchExternalSourceDialog({ isOpen, onClose, fetchDescription, nodeLabe
 
 
   const fetchYouTubeVideos = async (topics: string) => {
-
+    console.log(topics)
     if (!topics) {
       toast.error("Please select or drag a node")
       return;
@@ -340,7 +352,7 @@ function FetchExternalSourceDialog({ isOpen, onClose, fetchDescription, nodeLabe
     try {
       const query = topics.trim().split(/\s+/).join('+');
       const response = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&maxResults=10&type=video&key=${process.env.YOUTUBE_API_KEY}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=What+is+${query}&maxResults=10&type=video&key=${process.env.NEXT_PUBLIC_YOUTUBE_API_KEY}`
       );
       const data = await response.json();
       setIsSourceDialogOpen(true);

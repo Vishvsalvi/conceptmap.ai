@@ -21,10 +21,11 @@ import { Input } from "@/components/ui/input"
 import { useSession } from 'next-auth/react'
 import { createEdge, createMap, createNode, deleteNodesAndEdgesByMapId } from '@/app/actions/map'
 import { Skeleton } from "@/components/ui/skeleton"
-import { map } from 'zod'
+import { useRouter } from 'next/navigation'
 
 export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: string }) {
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   const [isPhraseDialogOpen, setIsPhraseDialogOpen] = useState(false);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -70,7 +71,7 @@ export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: 
     }
   })
 
-  const { mutate: handleSave, isPending: isSavePending } = useMutation({
+  const { mutate: handleSave, isPending: isSavePending, data } = useMutation({
     mutationFn: async () => {
       if (nodes.length < 1) {
         toast.error('Please add some nodes to the concept map');
@@ -107,43 +108,18 @@ export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: 
       toast.success('Map saved successfully!');
       setIsSaveDialogOpen(false);
       setMapName('');
+      return map;
     },
     onError: (error) => {
       console.error(error);
       toast.error('An error occurred while saving the map');
+    },
+    onSuccess: (data) => {
+      console.log('Map saved successfully');
+      console.log(data)
+      router.push(`/map/${session?.user?.id}/${data}`);
     }
   });
-
-//  const handleUpdate = async (mapId: string, nodes: any, edges: any) => {
-//   try {
-//     await deleteNodesAndEdgesByMapId(mapId);
-//     const nodePromises = nodes.map((node:any) =>
-//       createNode({
-//         data: node.data,
-//         id: node.id,
-//         type: node.type,
-//         mapId: mapId,
-//         position: node.position,
-//       })
-//     );
-//     await Promise.all(nodePromises);
-//     const edgePromises = edges.map((edge:any) =>
-//       createEdge({
-//         id: edge.id,
-//         source: edge.source,
-//         target: edge.target,
-//         mapId: mapId,
-//       })
-//     );
-//     await Promise.all(edgePromises);
-//     toast.success('Map updated successfully!');
-//   } catch (error) {
-//     console.error(error);
-//     toast.error('An error occurred while updating the map');
-//     return
-    
-//   }
-//  }
 
   const { mutate: handleUpdate, isPending: isUpdating } = useMutation({
     mutationFn: async ({mapId, nodes, edges}: {mapId: string, nodes: any, edges: any}) => {

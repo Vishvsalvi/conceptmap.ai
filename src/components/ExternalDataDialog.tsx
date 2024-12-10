@@ -1,15 +1,15 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { Dialog, DialogTitle, DialogHeader, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import Link from 'next/link'
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { reactEdge, reactNode, relativeParentNodePosition } from '@/app/store/atoms/nodes';
 import { targetNode } from '@/app/store/atoms/nodelabel';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import Link from 'next/link';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ExternalDataDialogProps {
   isOpen: boolean
@@ -27,13 +27,14 @@ const ExternalDataDialog = React.memo(
 
     const target = useRecoilValue(targetNode);
 
-    const handleCheckboxChange = (videoId: string) => {
+    // Memoize callback functions
+    const handleCheckboxChange = useCallback((videoId: string) => {
       setSelectedVideos(prev =>
         prev.includes(videoId) ? prev.filter(id => id !== videoId) : [...prev, videoId]
       );
-    };
+    }, []);
 
-    const addVideoNode = (title: string, thumbnail: string, channelName: string, videoId: string) => {
+    const addVideoNode = useCallback((title: string, thumbnail: string, channelName: string, videoId: string) => {
       const newNode = {
         id: new Date().getTime().toString(),
         type: 'videoNode',
@@ -45,9 +46,9 @@ const ExternalDataDialog = React.memo(
       };
       setNodes(prevNodes => [...prevNodes, newNode]);
       addNewEdge(target, newNode.id);
-    };
+    }, [parentNodePosition, target, setNodes]);
 
-    const addNewEdge = (source: string, target: string) => {
+    const addNewEdge = useCallback((source: string, target: string) => {
       const newEdge = {
         id: new Date().getTime().toString(),
         source,
@@ -55,10 +56,10 @@ const ExternalDataDialog = React.memo(
         animated: true,
       };
       setEdges(prevEdges => [...prevEdges, newEdge]);
-    };
+    }, [setEdges]);
 
-    const handleAddToMap = () => {
-      setIsLoading(true); // Start loading
+    const handleAddToMap = useCallback(() => {
+      setIsLoading(true);
       const videosToAdd = externalData.filter(video => selectedVideos.includes(video.id.videoId));
 
       videosToAdd.forEach((video, index) => {
@@ -70,12 +71,47 @@ const ExternalDataDialog = React.memo(
             video.id.videoId
           );
           if (index === videosToAdd.length - 1) {
-            setIsLoading(false); // Stop loading when all videos are added
+            setIsLoading(false);
             onClose();
           }
         }, index * 500);
       });
-    };
+    }, [externalData, selectedVideos, addVideoNode, onClose]);
+
+    // Memoize the video cards rendering
+    const videoCards = useMemo(() => (
+      externalData.map((video, index) => (
+        <Card key={index} className="overflow-hidden transition-shadow hover:shadow-lg">
+          <div className="relative">
+            <img
+              src={video.snippet.thumbnails.medium.url}
+              alt={video.snippet.title}
+              className="w-full object-cover"
+            />
+          </div>
+          <CardHeader className="p-4">
+            <CardTitle className="line-clamp-2 text-sm">{video.snippet.title}</CardTitle>
+            <CardDescription className="mt-1 text-xs">{video.snippet.channelTitle}</CardDescription>
+          </CardHeader>
+          <CardFooter className="flex justify-between items-center p-4">
+            <Link
+              href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
+              target="_blank"
+              className="text-xs bg-black text-white px-3 py-2 rounded-md"
+            >
+              View Video
+            </Link>
+            <Checkbox
+              id={`checkbox-${video.id.videoId}`}
+              checked={selectedVideos.includes(video.id.videoId)}
+              onCheckedChange={() => handleCheckboxChange(video.id.videoId)}
+            />
+          </CardFooter>
+        </Card>
+      ))
+    ), [externalData, selectedVideos]); // Add selectedVideos as dependency since it affects checkbox state
+
+    console.log(externalData);  
 
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -85,35 +121,7 @@ const ExternalDataDialog = React.memo(
           </DialogHeader>
           <ScrollArea className="h-[70vh]">
             <div className="grid gap-4 sm:grid-cols-2">
-              {externalData.map((video, index) => (
-                <Card key={index} className="overflow-hidden transition-shadow hover:shadow-lg">
-                  <div className="relative">
-                    <img
-                      src={video.snippet.thumbnails.medium.url}
-                      alt={video.snippet.title}
-                      className="w-full object-cover"
-                    />
-                  </div>
-                  <CardHeader className="p-4">
-                    <CardTitle className="line-clamp-2 text-sm">{video.snippet.title}</CardTitle>
-                    <CardDescription className="mt-1 text-xs">{video.snippet.channelTitle}</CardDescription>
-                  </CardHeader>
-                  <CardFooter className="flex justify-between items-center p-4">
-                    <Link
-                      href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
-                      target="_blank"
-                      className="text-xs bg-black text-white px-3 py-2 rounded-md"
-                    >
-                      View Video
-                    </Link>
-                    <Checkbox
-                      id={`checkbox-${video.id.videoId}`}
-                      checked={selectedVideos.includes(video.id.videoId)}
-                      onCheckedChange={() => handleCheckboxChange(video.id.videoId)}
-                    />
-                  </CardFooter>
-                </Card>
-              ))}
+              {videoCards}
             </div>
           </ScrollArea>
           <DialogFooter>
@@ -125,7 +133,11 @@ const ExternalDataDialog = React.memo(
       </Dialog>
     );
   },
-  (prevProps, nextProps) => prevProps.isOpen === nextProps.isOpen
+  // Optimize memo comparison
+  (prevProps, nextProps) => {
+    return prevProps.isOpen === nextProps.isOpen &&
+           prevProps.externalData === nextProps.externalData;
+  }
 );
 
 export default ExternalDataDialog;

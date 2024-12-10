@@ -6,7 +6,7 @@
     --radius: 0.5rem
   }
 }
-body, Button, a, p, .inter, input {
+body, Button, a, p, .inter, input, label, span {
   font-family: 'Inter', sans-serif; /* Default font for the body */
 }
 

@@ -62,6 +62,7 @@ You are an AI language model specialized in producing high-quality, well-structu
 - [Point 1]
 - [Point 2]
 - [Point 3]
+- [Point 4]
 
 ## Main Findings
 [Content]
@@ -117,6 +118,7 @@ As we stand at the crossroads of technological innovation...
 [Continue with structured sections...]
 
 Generate content following these markdown structures based on the provided subject data and intent. Ensure consistent formatting, proper heading hierarchy, and strategic use of markdown elements for optimal readability and engagement.
+Remember that the subject data is the data of the nodes in the concept map, please provide the output around the subject data and intent. 
 `;
 
 

@@ -14,9 +14,10 @@ type Props = {
   isOpen: boolean
   onClose: () => void
   intent: string
+  isExpertMode?: boolean
 }
 
-const OptionsDialog: React.FC<Props> = React.memo(({ isOpen, onClose, intent }) => {
+const OptionsDialog: React.FC<Props> = React.memo(({ isOpen, onClose, intent, isExpertMode }) => {
 
   const [selectedValue, setSelectedValue] = useState<string>("")
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -29,31 +30,8 @@ const OptionsDialog: React.FC<Props> = React.memo(({ isOpen, onClose, intent }) 
   const target = useRecoilValue(targetNode)
   const parentNodePosition = useRecoilValue(relativeParentNodePosition);
 
-  // const getInformation = async (intent: string, instruction: string, selectedNodeData: string) => {
-
-  //   if(!selectedNodeData){
-  //     toast.error('Please select a node')
-  //     return;
-  //   }
-  //  try {
-
-  //    const { data } = await axios.post('/api/details', {
-  //      intent,
-  //      instruction,
-  //      selectedNodeData
-  //    })
-  //    const text = await data.information;
-  //    console.log(text)
-  //    return text;
-  //  } catch (error) {
-  //    toast.error('An error occurred! Please try again');
-  //    return;  
-  //  }
-  // }
-
-
   const { mutate: getInformation, isPending } = useMutation({
-    mutationFn: async ({ intent, instruction, selectedNodeData }: { intent: string, instruction: string, selectedNodeData: string }) => {
+    mutationFn: async ({ intent, instruction, selectedNodeData }: { intent: string, instruction: string, selectedNodeData: string, }) => {
       if (!selectedNodeData) {
         toast.error('Please select a node')
         return;
@@ -63,7 +41,8 @@ const OptionsDialog: React.FC<Props> = React.memo(({ isOpen, onClose, intent }) 
       const { data } = await axios.post('/api/details', {
         intent,
         instruction,
-        selectedNodeData
+        selectedNodeData,
+        isExpert: isExpertMode
       })
 
       const text = await data.information;
@@ -80,7 +59,7 @@ const OptionsDialog: React.FC<Props> = React.memo(({ isOpen, onClose, intent }) 
   });
 
   const {mutate: getConcepts, isPending: isPendingConcepts} = useMutation({
-    mutationFn: async ({intent, subjectdata}: {intent: string, subjectdata: string}) => {
+    mutationFn: async ({intent, subjectdata,}: {intent: string, subjectdata: string}) => {
       if(!subjectdata){
         toast.error('Please select a node')
         return

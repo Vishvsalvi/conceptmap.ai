@@ -249,9 +249,9 @@ const Footer = () => {
               unoptimized={true}
               width={100}
               height={40}
-              src="/images/syntaxUI.svg"
+              src="/logo.png"
               alt="ConceptMap.ai"
-              className="h-7 w-auto"
+              className="w-[10rem]"
             />
             <p className="text-md max-w-xs leading-6 text-gray-700 dark:text-gray-300">
               This application is powered by X AI, the content generated is not guaranteed to be accurate or up-to-date.
