@@ -124,6 +124,7 @@ export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: 
   const { mutate: handleUpdate, isPending: isUpdating } = useMutation({
     mutationFn: async ({mapId, nodes, edges}: {mapId: string, nodes: any, edges: any}) => {
       await deleteNodesAndEdgesByMapId(mapId);
+      console.log(nodes)
       const nodePromises = nodes.map((node:any) =>
         createNode({
           data: node.data,
@@ -145,7 +146,7 @@ export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: 
       await Promise.all(edgePromises);
     },
     onError: (error) => {
-      console.error(error);
+      console.log(error);
       toast.error('An error occurred while updating the map');
       return;
     },
@@ -192,7 +193,7 @@ export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: 
           </Button>
         ) : (
           <Button
-            onClick={() => handleUpdate(mapId, nodes, edges)}
+            onClick={() => handleUpdate({mapId, nodes, edges})}
             variant="outline"
             className="flex-1 h-10 text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200"
             disabled={isUpdating}
