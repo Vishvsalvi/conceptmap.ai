@@ -1,5 +1,7 @@
 # **Conceptmap.AI**
 
+![{6C614F01-A4F4-43D0-B382-E0E0C0E004C8}](https://github.com/user-attachments/assets/faea3681-534e-4a6a-be01-ac1db8c28930)
+
 **Conceptmap.AI** is an AI-driven concept map creator designed to simplify and deepen your understanding of any topic. It generates nodes with content powered by an LLM, connected through edges to visually represent relationships. The tool provides multiple perspectives, guiding learners from basic concepts to advanced insights. Perfect for students, educators, and professionals, it transforms complex topics into clear, interactive maps.
 
 ## Features
