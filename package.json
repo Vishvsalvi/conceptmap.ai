@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.0.13",
     "@ai-sdk/openai": "^0.0.72",
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-accordion": "^1.2.1",

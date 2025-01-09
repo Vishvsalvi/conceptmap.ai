@@ -99,7 +99,6 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
   const getNodeData = useCallback(() => {
     const selectedNode = nodes.find((node: Node) => node.selected || false) as Node | undefined;
     setSelectedNode(selectedNode || {});
-    console.log(selectedNode)
     setParentNodePosition(selectedNode?.position || { x: 0, y: 0 });
 
     if (selectedNode?.type === 'dataNode') {
@@ -131,7 +130,7 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
       id: new Date().getTime().toString(),
       source,
       target,
-      animated: true,
+      animated: false,
     };
     setEdges([...edges, newEdge]);
   }

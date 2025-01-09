@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
 
 const llmPromptTemplate = `
 You are an expert in simplifying and explaining concepts. Based on the following parameters, provide a tailored response with length and depth adjusted based on expertise:
@@ -33,12 +34,6 @@ export async function POST(req: Request) {
     const { intent, instruction ,selectedNodeData, isExpert }: { intent: string, instruction: string, selectedNodeData: string, isExpert: boolean } = await req.json();
   
     try {
-      const xai = createOpenAI({
-        name: "xai",
-        baseURL: "https://api.x.ai/v1",
-        apiKey:
-          process.env.XAI_API_KEY,
-      });
   
       const formattedPrompt = llmPromptTemplate
         .replace("[Insert Intent Here]", intent)
@@ -47,13 +42,13 @@ export async function POST(req: Request) {
         .replace("[True/False]", isExpert ? "true" : "false");
   
       const { text } = await generateText({
-        model: xai("grok-beta"),
+        model: google("gemini-1.5-flash-001"),
         prompt: intent + " " + instruction + " " + selectedNodeData,
         system: formattedPrompt,
       });
       return NextResponse.json({ information: text });
     } catch (error) {
-      console.error("Error in GROK API call:", error);
+      console.error("Error in GOOGLE API call:", error);
       return NextResponse.json({ error: error }, { status: 500 });
     }
   }

@@ -87,7 +87,7 @@ const OptionsDialog: React.FC<Props> = React.memo(({ isOpen, onClose, intent, is
       id: new Date().getTime().toString(),
       source,
       target,
-      animated: true,
+      animated: false,
     };
     setEdges([...edges, newEdge]);
   }

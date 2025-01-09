@@ -53,7 +53,7 @@ const ExternalDataDialog = React.memo(
         id: new Date().getTime().toString(),
         source,
         target,
-        animated: true,
+        animated: false,
       };
       setEdges(prevEdges => [...prevEdges, newEdge]);
     }, [setEdges]);
@@ -111,7 +111,6 @@ const ExternalDataDialog = React.memo(
       ))
     ), [externalData, selectedVideos]); // Add selectedVideos as dependency since it affects checkbox state
 
-    console.log(externalData);  
 
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>

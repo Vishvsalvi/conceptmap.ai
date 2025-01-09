@@ -103,7 +103,7 @@ export const getEdgesByMapId = async (mapId: string) => {
 
      const edgesWithAnimation = edges.map(({ mapId, ...rest }) => ({
         ...rest,
-        animated: true,
+        animated: false,
     }));
 
     return edgesWithAnimation;

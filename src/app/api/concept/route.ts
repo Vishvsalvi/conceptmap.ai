@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { NextResponse } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google"
 import { z } from "zod";
 
 const systemPrompt = `
@@ -19,14 +20,9 @@ Respond with concise and relevant suggestions tailored to the intent provided.
 export async function POST(req: Request){
    try {
      const { subjectdata, intent } = await req.json();
-     const xai = createOpenAI({
-         name: "xai",
-         baseURL: "https://api.x.ai/v1",
-         apiKey:
-        process.env.XAI_API_KEY,
-     })
+
      const {object: data} = await generateObject({
-         model: xai("grok-beta"),
+         model: google("gemini-1.5-flash-001"),
          output: "array",
          schema: z.object({
              concept: z.string(),
@@ -36,7 +32,7 @@ export async function POST(req: Request){
      })
      return NextResponse.json({intent, data});
    } catch (error) {
-        console.error("Error in GROK API call:", error);
+        console.error("Error in Google API call:", error);
         return NextResponse.json({error: error}, {status: 500});
    }
 

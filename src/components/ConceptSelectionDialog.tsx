@@ -43,7 +43,7 @@ const ConceptSelectionDialog = React.memo(
         id: new Date().getTime().toString(),
         source: source,
         target: target,
-        animated: true,
+        animated: false,
       };
       setEdges((prevEdges) => [...prevEdges, edge]);
     };

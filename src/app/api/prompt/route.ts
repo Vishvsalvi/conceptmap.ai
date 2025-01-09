@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
 
 const topicDescriptionPrompt = `
 You are an AI assistant providing targeted responses based on different intents. Follow the specific instructions for each intent to keep the response relevant and concise. Adjust the length of the response based on the user's expertise:
@@ -33,12 +34,6 @@ export async function POST(req: Request) {
   const { intent, selectedNodeData, isExpert }: { intent: string, selectedNodeData: string, isExpert: boolean } = await req.json();
 
   try {
-    const xai = createOpenAI({
-      name: "xai",
-      baseURL: "https://api.x.ai/v1",
-      apiKey:
-        process.env.XAI_API_KEY,
-    });
 
     const formattedPrompt = topicDescriptionPrompt
       .replace("{{Intent}}", intent)
@@ -47,7 +42,7 @@ export async function POST(req: Request) {
 
 
     const { text } = await generateText({
-      model: xai("grok-beta"),
+      model: google("gemini-1.5-flash-001"),
       prompt: intent,
       system: formattedPrompt,
     });
@@ -56,7 +51,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ information: text });
   } catch (error) {
-    console.error("Error in GROK API call:", error);
+    console.error("Error in Google API call:", error);
     return NextResponse.json({ error: error }, { status: 500 });
   }
 }

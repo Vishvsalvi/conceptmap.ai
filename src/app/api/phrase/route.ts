@@ -2,6 +2,7 @@ import { generateObject } from "ai";
 import { NextResponse } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
 import { z } from 'zod';
+import { google } from "@ai-sdk/google";
 
 const systemPrompt = `
 You are an AI language model specialized in producing high-quality, well-structured content in Markdown format based on provided inputs.
@@ -126,14 +127,9 @@ export async function POST(req: Request) {
     const {subjectData, intent} = await req.json();    
     
     try {
-        const xai = createOpenAI({
-            name: "xai",
-            baseURL: "https://api.x.ai/v1",
-            apiKey: process.env.XAI_API_KEY,
-        });
     
         const {object: data} = await generateObject({
-            model: xai("grok-beta"),
+            model: google("gemini-1.5-flash-001"),
             schema: z.object({
                 title: z.string(),
                 content: z.string(),
