@@ -37,7 +37,7 @@
    Create a `.env` file in the root directory and add the following variables:
    ```env
    NEXT_PUBLIC_YOUTUBE_API_KEY
-   XAI_API_KEY
+   GOOGLE_GENERATIVE_AI_API_KEY
    DATABASE_URL
    AUTH_SECRET
    AUTH_GOOGLE_SECRET
