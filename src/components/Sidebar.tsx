@@ -23,10 +23,12 @@ import SubjectPersonDialogOption from './SubjectPersonDialogOption';
 import ExternalDataDialog from './ExternalDataDialog';
 import OptionsDialog from './OptionsDialog';
 import TermSelectionDialog from './TermSelectionDialog';
+import WikipediaDialog from './WikipediaDialog'
 import { useReactFlow } from '@xyflow/react';
 import { signOut } from 'next-auth/react'
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { WikiPediaData } from './WikipediaDialog'
 
 type Props = {
   addNewNode: (content: string) => void;
@@ -73,7 +75,7 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
   const [isConceptSelectionDialogOpen, setIsConceptSelectionDialogOpen] = useState(false);
   const [isLogout, setIsLogout] = useState(false)
   const [isExpertMode, setIsExpertMode] = useState(false);
-
+ 
   const handleSignOut = () => {
     signOut();
     return;
@@ -312,26 +314,32 @@ function FetchExternalSourceDialog({ isOpen, onClose, fetchDescription, nodeLabe
 
   const [isSourceDialogOpen, setIsSourceDialogOpen] = useState(false);
   const [sourceData, setSourceData] = useState<SourceData[]>([])
-
+  const [wikipediaData, setWikipediaData] = useState<WikiPediaData[]>([])
+  const [isWikipediaDialogOpen, setIsWikipediaDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const { mutate: getResources, isPending } = useMutation({
-    mutationFn: async ({ source, topic }: { source: string, topic: string }) => {
+    mutationFn: async ({ topic }: { topic: string }) => {
       if (!topic) {
         toast.error("Please select or drag a node")
         return;
       }
-      const response = await axios.post("/api/research", { source, topic })
+      setIsLoading(isPending)
+      setIsWikipediaDialogOpen(true)
+      console.log(isLoading)
+      const response = await axios.post("/api/research", { topic })
       const data = await response.data
       return data;
     },
-    onSuccess: (data) => {
-      setSourceData(data.data)
-      setIsSourceDialogOpen(true)
+    onSuccess: ({data}: {data: WikiPediaData[]}) => {
+      setWikipediaData(data)
+      setIsLoading(isPending)
       console.log(data)
     },
     onError: (error) => {
-      toast.error(error.message || "An error occurred")
-      setIsSourceDialogOpen(false)
+      toast.error("An error occurred! Please try again")
+      setIsWikipediaDialogOpen(false)
+      setIsLoading(false)
     },
   })
 
@@ -398,7 +406,7 @@ function FetchExternalSourceDialog({ isOpen, onClose, fetchDescription, nodeLabe
                     variant="secondary"
                     className="justify-start gap-2"
                     size="sm"
-                    onClick={source.name == "YouTube" ? async () => await fetchYouTubeVideos(nodeLabel) : async () => await getResources({ source: source.name, topic: nodeLabel })}
+                    onClick={source.name == "YouTube" ? async () => await fetchYouTubeVideos(nodeLabel) : async () => await getResources({ topic: nodeLabel })}
                   >
                     <source.icon className="h-4 w-4" />
                     {source.name.length > 10 ? `${source.name.slice(0, 10)}...` : source.name}
@@ -432,6 +440,13 @@ function FetchExternalSourceDialog({ isOpen, onClose, fetchDescription, nodeLabe
         isOpen={isSourceDialogOpen}
         externalData={sourceData}
         onClose={() => setIsSourceDialogOpen(false)}
+      />
+
+      <WikipediaDialog
+      isOpen={isWikipediaDialogOpen}
+      WikiPediaDataArray={wikipediaData}
+      onClose={() => setIsWikipediaDialogOpen(false)}
+      isLoading={isPending}
       />
 
     </div>

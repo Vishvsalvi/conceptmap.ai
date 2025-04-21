@@ -21,6 +21,7 @@ import CustomDataNode from '@/components/customNode/DataNode';
 import VideoNode from '@/components/customNode/VideoNode';
 import TermNode from '@/components/customNode/TermNode';
 import ConceptNode from '@/components/customNode/ConceptNode';
+import WikiPediaNode from './customNode/WikiPediaNode';
 import { targetNode } from '@/app/store/atoms/nodelabel';
 import { reactNode, reactEdge, relativeParentNodePosition, selectedNode } from '@/app/store/atoms/nodes'
 import Menubar from './Menubar';
@@ -73,7 +74,8 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
     'dataNode': CustomDataNode,
     'videoNode': VideoNode,
     'termNode': TermNode,
-    'conceptNode': ConceptNode
+    'conceptNode': ConceptNode,
+    'wikiPediaNode': WikiPediaNode
   }
 
 
