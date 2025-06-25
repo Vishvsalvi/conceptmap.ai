@@ -11,7 +11,7 @@ export async function POST(req: Request){
    try {
      const { paragraph } = await req.json();
      const {object: data} = await generateObject({
-        model: google("gemini-1.5-flash-001"),
+        model: google("gemini-2.0-flash"),
          output: "array",
          schema: z.object({
              concept: z.string(),

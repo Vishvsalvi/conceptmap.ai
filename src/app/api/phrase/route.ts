@@ -129,7 +129,7 @@ export async function POST(req: Request) {
     try {
     
         const {object: data} = await generateObject({
-            model: google("gemini-1.5-flash-001"),
+            model: google("gemini-2.0-flash"),
             schema: z.object({
                 title: z.string(),
                 content: z.string(),

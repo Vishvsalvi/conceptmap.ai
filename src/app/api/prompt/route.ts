@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
 
     const { text } = await generateText({
-      model: google("gemini-1.5-flash-001"),
+      model: google("gemini-2.0-flash"),
       prompt: intent,
       system: formattedPrompt,
     });
