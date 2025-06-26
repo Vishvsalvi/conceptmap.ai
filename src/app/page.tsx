@@ -85,7 +85,7 @@ const page = async () => {
               )}
             </div>
 
-            <p className="my-8 text-gray-500">3 Free trials · No credit card required</p>
+            <p className="my-8 text-gray-500">Its free to use, no credit card required</p>
           </div>
         </div>
 
@@ -254,7 +254,7 @@ const Footer = () => {
               className="w-[10rem]"
             />
             <p className="text-md max-w-xs leading-6 text-gray-700 dark:text-gray-300">
-              This application is powered by X AI, the content generated is not guaranteed to be accurate or up-to-date.
+              This application is powered by Gemini, the content generated is not guaranteed to be accurate or up-to-date.
             </p>
             <div className="flex space-x-6 text-sm text-gray-700  dark:text-gray-300">
               <div>Made with ❤️ by Vishv.</div>

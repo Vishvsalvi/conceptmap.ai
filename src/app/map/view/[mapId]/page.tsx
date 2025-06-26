@@ -16,6 +16,7 @@ import CustomDataNode from '@/components/customNode/DataNode'
 import VideoNode from '@/components/customNode/VideoNode'
 import TermNode from '@/components/customNode/TermNode'
 import ConceptNode from '@/components/customNode/ConceptNode'
+import MobileRestriction from '@/components/MobileRestriction'
 import { getMapName, getNodesByMapId, getEdgesByMapId } from '@/app/actions/map';
 
 const Map = ({ params }: { params: { mapId: string } }) => {
@@ -70,26 +71,28 @@ const Map = ({ params }: { params: { mapId: string } }) => {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable={false}
-        panOnScroll={true}
-        preventScrolling={false}
-        fitView={true}
-      >
-        <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-        <DisplayName name={mapName} />
-        
-      </ReactFlow>
-    </div>
+    <MobileRestriction>
+      <div style={{ width: '100vw', height: '100vh' }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable={false}
+          panOnScroll={true}
+          preventScrolling={false}
+          fitView={true}
+        >
+          <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+          <DisplayName name={mapName} />
+          
+        </ReactFlow>
+      </div>
+    </MobileRestriction>
   )
 }
 
