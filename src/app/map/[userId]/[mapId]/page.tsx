@@ -1,6 +1,7 @@
 import React from 'react'
 import { auth } from '@/auth';
 import Map from '@/components/Map';
+import MobileRestriction from '@/components/MobileRestriction';
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -23,10 +24,9 @@ const Viewmap = async ({ params }: { params: { userId: string, mapId: string } }
 
   
   return (
-    <>
-    <Map mapId={mapId} mapname={map?.name} fetchedNodes={nodes} fetchedEdges={edges} />
-      
-    </>
+    <MobileRestriction>
+      <Map mapId={mapId} mapname={map?.name} fetchedNodes={nodes} fetchedEdges={edges} />
+    </MobileRestriction>
   )
 }
 
