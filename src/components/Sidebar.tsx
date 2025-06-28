@@ -13,8 +13,8 @@ import {
 import { Book, FileText, Link, Newspaper, Search, TrendingUp, Youtube, LogOut } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import axios from 'axios'
 import { useRecoilValue } from 'recoil';
+import { useCompletion } from 'ai/react';
 import { nodeLabelState, targetNode } from '@/app/store/atoms/nodelabel';
 import { toast } from 'react-toastify';
 import { useMutation } from '@tanstack/react-query';
@@ -83,27 +83,42 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
   const target = useRecoilValue(targetNode);
   const { zoomOut, setViewport } = useReactFlow();
 
-  const { mutate: fetchDescription, isPending } = useMutation({
-    mutationFn: async ({ intent, selectedNodeData }: { intent: string, selectedNodeData: string }) => {
-      if (!selectedNodeData) throw new Error("Please select or drag a node")
-      setDialogOpen(true)
-      setCurrentIntent(intent)
-      const { data } = await axios.post("/api/prompt", { intent, selectedNodeData, isExpert:isExpertMode })
-
-      return data
+  const { completion, complete, isLoading: isCompletionLoading } = useCompletion({
+    api: '/api/prompt',
+    experimental_throttle: 16, // ~60fps for ultra-smooth streaming
+    headers: {
+      'Cache-Control': 'no-cache', // Prevent caching for faster responses
     },
-    onSuccess: (data) => {
-      setGeneratedContent(data.information)
-
+    onResponse: (response) => {
+      if (!response.ok) {
+        toast.error("Failed to fetch response")
+        setDialogOpen(false)
+      }
     },
     onError: (error) => {
       toast.error(error.message || "An error occurred")
       setDialogOpen(false)
     },
-  })
+    onFinish: () => {
+      // Streaming finished - UI will automatically update via completion state
+    }
+  });
+
+  const fetchDescription = async ({ intent, selectedNodeData }: { intent: string, selectedNodeData: string }) => {
+    if (!selectedNodeData) {
+      toast.error("Please select or drag a node")
+      return;
+    }
+    setDialogOpen(true)
+    setCurrentIntent(intent)
+    
+    await complete(intent, {
+      body: { intent, selectedNodeData, isExpert: isExpertMode }
+    });
+  }
 
   const handleConfirmAddToMap = () => {
-    const newNodeId = addDescriptionNode(currentIntent, generatedContent);
+    const newNodeId = addDescriptionNode(currentIntent, completion);
     addNewEdge(target, newNodeId);
     setDialogOpen(false);
   };
@@ -116,8 +131,14 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
     mutationFn: async (paragraph: string) => {
       console.log("Extracting keywords")
       setIsConceptSelectionDialogOpen(true);
-      const response = await axios.post("/api/extract", { paragraph })
-      const terms = await response.data
+      const response = await fetch("/api/extract", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ paragraph }),
+      });
+      const terms = await response.json()
       return terms.data;
     },
     onSuccess: (data) => {
@@ -187,7 +208,7 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
                 <TooltipTrigger asChild>
                   <Button
                     variant={button.label === "Logout" ? "destructive" : "outline"}
-                    onClick={() => {
+                    onClick={async () => {
                       if (button.label === "Logout") {
                         setIsLogout(true)
                         return;
@@ -212,17 +233,15 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
                       }
 
                       else {
-                        fetchDescription({ intent: button.label, selectedNodeData: nodeLabel })
+                        await fetchDescription({ intent: button.label, selectedNodeData: nodeLabel })
                       }
                     }}
                     // variant="outline"
                     className={button.badge ? "relative" : ""}
-                    disabled={isPending && button.label !== "Reset"}
+                    disabled={isCompletionLoading && button.label !== "Reset"}
                   >
                     {button.label}
-                    {button.badge && (
-                      <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-blue-500" />
-                    )}
+
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{button.tooltip}</TooltipContent>
@@ -254,8 +273,8 @@ const Sidebar = ({ addNewNode, addDescriptionNode, addNewEdge }: Props) => {
           isOpen={dialogOpen}
           onClose={() => setDialogOpen(false)}
           onConfirm={handleConfirmAddToMap}
-          content={generatedContent}
-          isLoading={isPending}
+          content={completion}
+          isLoading={isCompletionLoading}
         />
 
         <SubjectPersonDialogOption
@@ -320,8 +339,14 @@ function FetchExternalSourceDialog({ isOpen, onClose, fetchDescription, nodeLabe
         toast.error("Please select or drag a node")
         return;
       }
-      const response = await axios.post("/api/research", { source, topic })
-      const data = await response.data
+      const response = await fetch("/api/research", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ source, topic }),
+      });
+      const data = await response.json()
       return data;
     },
     onSuccess: (data) => {
