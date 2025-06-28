@@ -1,6 +1,5 @@
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
-import { createOpenAI } from "@ai-sdk/openai";
 import { google } from "@ai-sdk/google";
 
 const llmPromptTemplate = `
