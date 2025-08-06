@@ -63,7 +63,7 @@ export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: 
     },
     onSuccess: (data) => {
       setPhraseDialogContent(data);
-      console.log(data);
+
     },
     onError: (error) => {
       console.error(error);
@@ -115,8 +115,7 @@ export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: 
       toast.error('An error occurred while saving the map');
     },
     onSuccess: (data) => {
-      console.log('Map saved successfully');
-      console.log(data)
+
       router.push(`/map/${session?.user?.id}/${data}`);
     }
   });
@@ -124,7 +123,7 @@ export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: 
   const { mutate: handleUpdate, isPending: isUpdating } = useMutation({
     mutationFn: async ({mapId, nodes, edges}: {mapId: string, nodes: any, edges: any}) => {
       await deleteNodesAndEdgesByMapId(mapId);
-      console.log(nodes)
+
       const nodePromises = nodes.map((node:any) =>
         createNode({
           data: node.data,
@@ -146,12 +145,12 @@ export default function Menubar({ mapname, mapId }: { mapname?: string, mapId?: 
       await Promise.all(edgePromises);
     },
     onError: (error) => {
-      console.log(error);
+
       toast.error('An error occurred while updating the map');
       return;
     },
     onSuccess: () => {
-      console.log('Map updated successfully');
+
       toast.success('Map updated successfully!');
       return;
     }

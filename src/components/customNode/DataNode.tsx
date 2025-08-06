@@ -10,10 +10,24 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Handle, Position } from '@xyflow/react'
 import ReactMarkdown from 'react-markdown'
 
-export default memo(({ data }: { data: { title: string, description: string, color: string }}) => {
+// Function to determine text color based on background color
+function getContrastColor(hexColor: string) {
+  // Convert hex to RGB
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+  
+  // Calculate luminance
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+
+  // Return black for light backgrounds, white for dark backgrounds
+  return luminance > 0.5 ? '#000000' : '#ffffff'
+}
+
+export default memo(({ data }: { data: { title: string, description: string, color?: string, onColorChange?: (color: string) => void }}) => {
 
   const [isOpen, setIsOpen] = useState(true)
-  const [cardColor, setCardColor] = useState(data.color)
+  const [cardColor, setCardColor] = useState(data.color || '#FFFFFF')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
   const toggleAccordion = () => setIsOpen(!isOpen)
@@ -25,6 +39,7 @@ export default memo(({ data }: { data: { title: string, description: string, col
   }, [isOpen])  
 
   const colorOptions = [
+    { value: '#FFFFFF', label: 'White' },
     { value: '#FFF7ED', label: 'Orange' },
     { value: '#FEFCE8', label: 'Yellow' },
     { value: '#ECFDF5', label: 'Green' },
@@ -36,7 +51,13 @@ export default memo(({ data }: { data: { title: string, description: string, col
   const handleColorChange = (color: string) => {
     setCardColor(color)
     setIsDialogOpen(false) // Close the dialog after color selection
+    // Call the onColorChange callback if provided
+    if (data.onColorChange) {
+      data.onColorChange(color)
+    }
   }
+
+  const textColor = getContrastColor(cardColor)
 
   return (
     <div className="relative w-[400px]">
@@ -47,14 +68,14 @@ export default memo(({ data }: { data: { title: string, description: string, col
       />
       <Card
         className="w-full transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl"
-        style={{ backgroundColor: cardColor }}
+        style={{ backgroundColor: cardColor, color: textColor }}
       >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-lg font-semibold mr-2">{data.title}</CardTitle>
+          <CardTitle className="text-lg font-semibold mr-2" style={{ color: textColor }}>{data.title}</CardTitle>
           <div className="flex items-center space-x-1">
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button variant="ghost" size="icon" className="h-8 w-8" style={{ color: textColor }}>
                   <Palette className="h-4 w-4" />
                   <span className="sr-only">Change card color</span>
                 </Button>
@@ -98,6 +119,7 @@ export default memo(({ data }: { data: { title: string, description: string, col
               onClick={toggleAccordion} 
               aria-expanded={isOpen}
               className="h-8 w-8"
+              style={{ color: textColor }}
             >
               {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               <span className="sr-only">{isOpen ? 'Close' : 'Open'} accordion</span>
@@ -109,7 +131,7 @@ export default memo(({ data }: { data: { title: string, description: string, col
             ref={contentRef}
             className="overflow-hidden transition-all duration-300 ease-in-out"
           >
-            <div className="text-sm text-muted-foreground prose prose-sm max-w-none pt-2">
+            <div className="text-sm prose prose-sm max-w-none pt-2" style={{ color: textColor }}>
               <ReactMarkdown>{data.description}</ReactMarkdown>
             </div>
           </div>
