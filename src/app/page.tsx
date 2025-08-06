@@ -40,16 +40,18 @@ const page = async () => {
         <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="max-w-[55rem] mx-auto text-center">
             <h1 className="px-6 text-lg text-gray-600"> Create Concept Maps with AI</h1>
-            <div className="tracking-tighter mt-2 text-4xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-6xl lg:leading-tight ">
-              Simplify Learning, Amplify Understanding With AI
+            <div className="tracking-tighter mt-2 text-4xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-7xl lg:leading-tight ">
+            Escape Endless Chats. <br /> Enter the Canvas.
             </div>
-
+            <p className='text-gray-600 text-lg'>
+            Your ideas deserve more than a chat box turn prompts into clear, navigable mind maps.
+            </p>
             <div className="px-8 mt-9 flex flex-col sm:flex-row sm:items-center sm:justify-center sm:px-0 sm:space-x-5 space-y-4 sm:space-y-0">
               {isAuth ? (
                 <>
                   <Link href="/map" passHref>
                     <Button
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                      className=" text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
                     >
                       <Rocket className="w-5 h-5 mr-2" />
                       Explore Now
@@ -61,7 +63,7 @@ const page = async () => {
                     passHref
                     ><Button
                     variant={"outline"}
-                    className="border-2 border-purple-500 text-purple-700 hover:bg-purple-50 font-semibold py-2 px-6 rounded-lg shadow-sm transform transition-all duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-50"
+                    className="border-2font-semibold py-2 px-6 rounded-lg shadow-sm transform transition-all duration-300 ease-in-out scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-50"
                     >
                       Library
                     </Button>

@@ -14,3 +14,60 @@ body, Button, a, p, .inter, input, label, span {
   font-family: 'Merriweather', serif; /* Apply Merriweather to specific elements */
 }
 
+/* Animation for new nodes */
+@keyframes nodeZoomPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  25% {
+    transform: scale(1.15);
+    opacity: 1;
+    box-shadow: 0 0 30px 15px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+    box-shadow: 0 0 20px 10px rgba(59, 130, 246, 0.3);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.new-node-animation {
+  animation: nodeZoomPulse 1.5s ease-out;
+  animation-fill-mode: forwards;
+}
+
+/* Ensure the animation works with React Flow nodes */
+.react-flow__node.new-node-animation {
+  z-index: 1000 !important;
+}
+
+/* Subtle border for selected nodes */
+.react-flow__node.selected > div {
+  position: relative;
+}
+
+.react-flow__node.selected > div::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid rgba(59, 130, 246, 0.5);
+  border-radius: 1rem;
+  pointer-events: none;
+  animation: subtlePulse 2s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}

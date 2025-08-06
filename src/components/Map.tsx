@@ -149,19 +149,50 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
     [setEdges],
   );
 
-  const addNewNode = (content: string) => {
+  const addNewNode = (content: string, viewportCenter?: { x: number; y: number }) => {
     if(!content) {
       toast.error('Please enter a topic name');
       return;
     }
+    
+    // Position the new node at viewport center or spread nodes if center not provided
+    const position = viewportCenter || {
+      x: Math.random() * 500,
+      y: Math.random() * 500
+    };
+    
     const newNode = {
       id: new Date().getTime().toString(),
       type: 'titleNode',
-      position: { x: 0, y: 0 },
-      data: { label: content },
+      position,
+      data: { label: content, color: "#FFFFFF" },
+      // Don't add animation class immediately
     };
     setNodes([...nodes, newNode]);
-    return newNode.position;
+    
+    // Add animation class after a tiny delay to ensure node is rendered first
+    setTimeout(() => {
+      setNodes(prevNodes => 
+        prevNodes.map(node => 
+          node.id === newNode.id 
+            ? { ...node, className: 'new-node-animation' }
+            : node
+        )
+      );
+    }, 50);
+    
+    // Remove animation class after animation completes
+    setTimeout(() => {
+      setNodes(prevNodes => 
+        prevNodes.map(node => 
+          node.id === newNode.id 
+            ? { ...node, className: '' }
+            : node
+        )
+      );
+    }, 2500); // Adjusted for animation delay + duration
+    
+    return newNode.id; // Return node ID instead of position
   }
 
   const addDescriptionNode = (title: string, description: string) => {
@@ -172,21 +203,22 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
         x: parentNodePosition.x + Math.floor(Math.random() * (500 - 300 + 1)) + 300,
         y: parentNodePosition.y + Math.floor(Math.random() * (500 - 300 + 1)) + 300
       },
-      data: { title, description, color: "#ffffff" },
+      data: { title, description, color: "#FFFFFF" },
     };
     setNodes([...nodes, newNode]);
     return newNode.id;
   }
 
-  const onColorChange = useCallback((nodeId: string, color: string) => {
-    setNodes((prevNodes) =>
-      prevNodes.map((node) =>
+  // Function to update node data (including color)
+  const updateNodeData = useCallback((nodeId: string, newData: any) => {
+    setNodes((nds) =>
+      nds.map((node) =>
         node.id === nodeId
-          ? { ...node, data: { ...node.data, color, onChange: onColorChange } }
+          ? { ...node, data: { ...node.data, ...newData } }
           : node
       )
     );
-  }, []);
+  }, [setNodes]);
   
 
   return (
@@ -194,7 +226,13 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
 
     <div style={{ width: '100vw', height: '100vh' }}>
       <ReactFlow
-        nodes={nodes}
+        nodes={nodes.map(node => ({
+          ...node,
+          data: {
+            ...node.data,
+            onColorChange: (color: string) => updateNodeData(node.id, { color })
+          }
+        }))}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
