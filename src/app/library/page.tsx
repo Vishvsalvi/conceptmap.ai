@@ -3,25 +3,28 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { ArrowLeft, AlertCircle, Loader2, ExternalLink, Share2 } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Loader2, ExternalLink, Share2, Trash2 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { getAllContent, getAllMaps } from '../actions/map'
 import { useSession } from 'next-auth/react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import ReactMarkdown from 'react-markdown'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
-
+import { ScrollArea } from '@/components/ui/scroll-area' 
+import { deleteMap, deleteNodesAndEdgesByMapId  } from '../actions/map'
+import { toast } from 'react-toastify'
+import { useRouter } from 'next/navigation'
 type ContentType = 'BLOG' | 'SUMMARY' | 'ESSAY' | 'CONCEPT_MAP'
 
 interface Content {
   id: string
-  title: string
+  title?: string
+  name?: string
   type: ContentType
   content: string
-  createdAt: string
+  createdAt?: string
 }
 
 interface Map {
@@ -33,7 +36,8 @@ export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState<ContentType>("CONCEPT_MAP")
   const { data: session } = useSession()
   const dialog = useDialog()
-
+  const [mapToDelete, setMapToDelete] = useState<string | null>(null)
+  const router = useRouter()
   const { data: contents, isLoading, isError, error, refetch } = useQuery<Content[], Error>({
     queryKey: ['content'],
     queryFn: async () => {
@@ -55,6 +59,25 @@ export default function LibraryPage() {
       return response
     }
   })
+
+const {mutate: deleteMapMutation, isPending: isDeletingMap} = useMutation({
+  mutationFn: async (mapId: string) => {
+    await deleteNodesAndEdgesByMapId(mapId)
+    await deleteMap(mapId)
+  },
+  onSuccess: () => {
+    // Refetch both maps and contents
+    // refetch()
+    router.refresh()
+    toast.success("Map deleted successfully")
+    setMapToDelete(null)
+  },
+  onError: (error) => {
+    console.error(error)
+    toast.error("Failed to delete map")
+    toast.error(error.message)
+  }
+})
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -83,7 +106,7 @@ export default function LibraryPage() {
 
   const handleCardClick = (content: Content) => {
     dialog.show({
-      title: content.title,
+      title: content.title || content.name || 'Content',
       content: <ReactMarkdown>{content.content}</ReactMarkdown>
     })
   }
@@ -91,7 +114,7 @@ export default function LibraryPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+    <div className="flex justify-center min-h-screen bg-gradient-to-br from-background to-secondary/20">
       <div className="container px-4 py-12 relative">
         <Link
           href="/map"
@@ -120,7 +143,7 @@ export default function LibraryPage() {
 
           <TabsContent value={activeTab}>
             <motion.div
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              className="grid grid-cols-1 md:grid-cols-4 gap-6"
               {...fadeIn}
             >
               {activeTab === "CONCEPT_MAP" && maps ? (
@@ -131,23 +154,61 @@ export default function LibraryPage() {
                     onClick={() => 'content' in item ? handleCardClick(item as Content) : null}
                   >
                     <CardHeader className="bg-primary/5">
-                      <CardTitle className='text-xl' >{item.title || item.name}</CardTitle>
+                      <CardTitle className='text-xl font-sans' >
+                        <div className='flex items-center justify-between'>
+                          <span>{'name' in item ? item.name : item.title || ''}</span>
+                          <Dialog open={mapToDelete === item.id} onOpenChange={(open) => !open && setMapToDelete(null)}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="icon" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMapToDelete(item.id);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Are you sure you want to delete this map?</DialogTitle>
+                              <DialogDescription>This action cannot be undone.</DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                              <Button variant="outline" onClick={() => setMapToDelete(null)}>Cancel</Button>
+                              <Button 
+                                variant="destructive"
+                                onClick={() => {
+                                  if (mapToDelete) {
+                                    deleteMapMutation(mapToDelete)
+                                  }
+                                }} 
+                                disabled={isDeletingMap}
+                              >
+                                {isDeletingMap ? 'Deleting...' : 'Delete'}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                        </div>
+                      </CardTitle>
                     </CardHeader>
                     {'name' in item && (
                       <CardContent className="pt-4">
                         <div className="flex space-x-2">
                           <Link href={`/map/${session?.user?.id}/${item.id}`} passHref className="flex-grow">
-                            <Button className="w-full">
+                            <Button variant="outline" className="w-full">
                               Visit Map
                               <ExternalLink className="ml-2 h-4 w-4" />
                             </Button>
                           </Link>
                           <Button
-                            variant="outline"
+                            variant="secondary"
 
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleShare(item.id);
+                              handleShare(item.id); 
                             }}
                           >
                             Share <Share2 className="h-4 w-4" />

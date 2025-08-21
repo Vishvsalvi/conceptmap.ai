@@ -14,7 +14,6 @@ const Viewmap = async ({ params }: { params: { userId: string, mapId: string } }
   const {userId, mapId} = params;
 
   if (userId !== sessionId) {
-    console.log('Unauthorized')
     return <UnauthorizedPage />
   }
 

@@ -46,7 +46,6 @@ const OptionsDialog: React.FC<Props> = React.memo(({ isOpen, onClose, intent, is
       })
 
       const text = await data.information;
-      console.log(text)
       return text;
     },
     onSuccess: (data) => {

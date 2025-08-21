@@ -17,7 +17,8 @@ export const SIDEBAR_BUTTONS = [
   { label: "Pros", tooltip: "List the advantages or benefits of the topic" },
   { label: "Cons", tooltip: "List the disadvantages or drawbacks of the topic" },
   { label: "Example", tooltip: "See an example related to the topic" },
-  { label: "Research", tooltip: "Learn and research using other sources of information", badge: true },
+  // { label: "Research", tooltip: "Learn and research using other sources of information", badge: true },
+  { label: "YouTube", tooltip: "Find YouTube videos and tutorials on the topic", badge: true },
   { label: "Extract", tooltip: "Extract key information from the topic", badge: true },
   { label: "Concepts", tooltip: "Identify main concepts related to the topic", badge: true },
   { label: "Compare", tooltip: "Compare this topic with a related one" },
@@ -28,6 +29,7 @@ export const SIDEBAR_BUTTONS = [
   { label: "Interesting", tooltip: "Discover interesting facts about the topic" },
   { label: "Explain", tooltip: "Get a simplified explanation of the topic", badge: true },
   { label: "Question", tooltip: "Generate questions about the topic", badge: true },
+  { label: "Custom", tooltip: "Ask your own custom question", badge: true },
   { label: "Logout", tooltip: "Logout from the application" }
 ]
 

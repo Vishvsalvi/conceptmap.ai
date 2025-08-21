@@ -10,7 +10,6 @@ export const registerUser = async(email:string) => {
      })
      return user;
    } catch (error) {
-       console.log(error);
        return null;
    }
     
@@ -25,7 +24,6 @@ export const getUser = async(email:string) => {
         })
         return user;
     } catch (error) {
-        console.log(error);
         return null;
     }
 }

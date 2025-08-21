@@ -13,7 +13,6 @@ export const handleGoogleSignIn = async () => {
 
 export const handleCommonSignOut = async () => {
     try {
-        console.log("Signing out");
         await signOut({redirectTo: "/"});
     } catch (error) {
         console.error(error);
