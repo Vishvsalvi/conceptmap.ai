@@ -30,7 +30,6 @@ export const useExternalResources = ({ onSuccess, onDialogOpen }: UseExternalRes
       if (data) {
         onSuccess(data.data)
         onDialogOpen(true)
-        console.log(data)
       }
     },
     onError: (error: Error) => {
@@ -40,14 +39,11 @@ export const useExternalResources = ({ onSuccess, onDialogOpen }: UseExternalRes
   })
 
   const fetchYouTubeVideos = async (topics: string, onSuccess: (data: any[]) => void) => {
-    console.log(topics)
     if (!topics) {
       toast.error("Please select or drag a node")
       return
     }
     
-    console.log(topics.split(' ').length <= 5)
-
     if (!(topics.split(' ').length <= 5)) {
       toast.error("Please select the topic node")
       return

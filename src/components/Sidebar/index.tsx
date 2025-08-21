@@ -14,8 +14,9 @@ import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { useRecoilValue } from 'recoil'
+import { useRecoilValue, useRecoilState } from 'recoil'
 import { nodeLabelState, targetNode } from '@/app/store/atoms/nodelabel'
+import { selectedNodes as selectedNodesAtom } from '@/app/store/atoms/nodes'
 import { toast } from 'react-toastify'
 import { useReactFlow } from '@xyflow/react'
 import { signOut } from 'next-auth/react'
@@ -26,6 +27,9 @@ import SubjectPersonDialogOption from '../SubjectPersonDialogOption'
 import OptionsDialog from '../OptionsDialog'
 import TermSelectionDialog from '../TermSelectionDialog'
 import FetchExternalSourceDialog from './FetchExternalSourceDialog'
+import CustomQuestionDialog from './CustomQuestionDialog'
+import CompareDialog from '../CompareDialog'
+import ExternalDataDialog from '../ExternalDataDialog'
 
 // Import constants and types
 import { SIDEBAR_BUTTONS, DIALOG_OPTIONS } from './constants'
@@ -34,6 +38,7 @@ import { SidebarProps } from './types'
 // Import custom hooks
 import { useCompletionHook } from './hooks/useCompletion'
 import { useExtractKeywords } from './hooks/useExtractKeywords'
+import { useExternalResources } from './hooks/useExternalResources'
 
 const Sidebar: React.FC<SidebarProps> = ({ addNewNode, addDescriptionNode, addNewEdge }) => {
   // State management
@@ -48,10 +53,17 @@ const Sidebar: React.FC<SidebarProps> = ({ addNewNode, addDescriptionNode, addNe
   const [isConceptSelectionDialogOpen, setIsConceptSelectionDialogOpen] = useState(false)
   const [isLogout, setIsLogout] = useState(false)
   const [isExpertMode, setIsExpertMode] = useState(false)
+  const [isCustomQuestionDialogOpen, setIsCustomQuestionDialogOpen] = useState(false)
+  const [isCompareDialogOpen, setIsCompareDialogOpen] = useState(false)
+  const [comparisonResult, setComparisonResult] = useState('')
+  const [showComparisonResult, setShowComparisonResult] = useState(false)
+  const [isYouTubeDialogOpen, setIsYouTubeDialogOpen] = useState(false)
+  const [youTubeData, setYouTubeData] = useState<any[]>([])
 
   // Recoil values
   const nodeLabel = useRecoilValue(nodeLabelState)
   const target = useRecoilValue(targetNode)
+  const [selectedNodesList, setSelectedNodesList] = useRecoilState(selectedNodesAtom)
 
   // React Flow hooks
   const { zoomOut, fitView, getViewport, setViewport } = useReactFlow()
@@ -67,6 +79,11 @@ const Sidebar: React.FC<SidebarProps> = ({ addNewNode, addDescriptionNode, addNe
     onDialogOpen: setIsConceptSelectionDialogOpen
   })
 
+  const { fetchYouTubeVideos } = useExternalResources({
+    onSuccess: setYouTubeData,
+    onDialogOpen: setIsYouTubeDialogOpen
+  })
+
   // Event handlers
   const handleSignOut = () => {
     signOut()
@@ -76,6 +93,65 @@ const Sidebar: React.FC<SidebarProps> = ({ addNewNode, addDescriptionNode, addNe
     const newNodeId = addDescriptionNode(currentIntent, completion)
     addNewEdge(target, newNodeId)
     setDialogOpen(false)
+  }
+
+  const handleCustomQuestion = async (customQuestion: string) => {
+    if (!nodeLabel) {
+      toast.error("Please select or drag a node")
+      return
+    }
+    setIsCustomQuestionDialogOpen(false)
+    await fetchDescription({
+      intent: customQuestion,
+      selectedNodeData: nodeLabel,
+      isExpertMode
+    })
+  }
+
+  const handleCompare = async (selectedNodes: any[]) => {
+    try {
+      const response = await fetch('/api/compare', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nodes: selectedNodes,
+          comparisonType: "Similarities and differences",
+          isExpert: isExpertMode
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate comparison');
+      }
+
+      setComparisonResult(data.comparison);
+      setShowComparisonResult(true);
+    } catch (error) {
+      console.error('Error comparing nodes:', error);
+      toast.error('Failed to compare nodes');
+    }
+  }
+
+  const handleConfirmComparison = () => {
+    // Create the comparison node
+    const compareNodeId = addDescriptionNode(
+      "Comparison Result",
+      comparisonResult
+    );
+
+    // Add edges from all selected nodes to the comparison node
+    selectedNodesList.forEach(node => {
+      addNewEdge(node.id, compareNodeId);
+    });
+
+    // Clear selection
+    setSelectedNodesList([]);
+
+    setShowComparisonResult(false);
   }
 
   const handleNewTopic = () => {
@@ -132,18 +208,31 @@ const Sidebar: React.FC<SidebarProps> = ({ addNewNode, addDescriptionNode, addNe
       case "Research":
         setExternalDialogIsOpen(true)
         break
+      case "YouTube":
+        fetchYouTubeVideos(nodeLabel, setYouTubeData)
+        break
       case "Extract":
         extractKeywords(nodeLabel)
+        break
+      case "Custom":
+        setIsCustomQuestionDialogOpen(true)
+        break
+      case "Compare":
+        if (selectedNodesList.length < 2) {
+          toast.error("Please select at least 2 nodes to compare (hold Shift and click)")
+          return
+        }
+        setIsCompareDialogOpen(true)
         break
       default:
         if (DIALOG_OPTIONS.includes(buttonLabel)) {
           setIsOptionDialogOpen(true)
           setOptionsDialogIntent(buttonLabel)
         } else {
-          await fetchDescription({ 
-            intent: buttonLabel, 
+          await fetchDescription({
+            intent: buttonLabel,
             selectedNodeData: nodeLabel,
-            isExpertMode 
+            isExpertMode
           })
         }
     }
@@ -279,6 +368,35 @@ const Sidebar: React.FC<SidebarProps> = ({ addNewNode, addDescriptionNode, addNe
           onClose={() => setIsConceptSelectionDialogOpen(false)}
           terms={extractedWords}
           isLoading={isExtractLoading}
+        />
+
+        <CustomQuestionDialog
+          isOpen={isCustomQuestionDialogOpen}
+          onClose={() => setIsCustomQuestionDialogOpen(false)}
+          onSubmit={handleCustomQuestion}
+          nodeLabel={nodeLabel}
+          isLoading={isCompletionLoading}
+        />
+
+        <CompareDialog
+          isOpen={isCompareDialogOpen}
+          onClose={() => setIsCompareDialogOpen(false)}
+          onCompare={handleCompare}
+          isLoading={isCompletionLoading}
+        />
+
+        <MapInfoDialog
+          isOpen={showComparisonResult}
+          onClose={() => setShowComparisonResult(false)}
+          onConfirm={handleConfirmComparison}
+          content={comparisonResult}
+          isLoading={false}
+        />
+
+        <ExternalDataDialog
+          isOpen={isYouTubeDialogOpen}
+          externalData={youTubeData}
+          onClose={() => setIsYouTubeDialogOpen(false)}
         />
       </div>
     </TooltipProvider>

@@ -8,7 +8,6 @@ interface UseExtractKeywordsProps {
 export const useExtractKeywords = ({ onSuccess, onDialogOpen }: UseExtractKeywordsProps) => {
   const { mutate: extractKeywords, isPending: isLoading } = useMutation({
     mutationFn: async (paragraph: string) => {
-      console.log("Extracting keywords")
       onDialogOpen(true)
       
       const response = await fetch("/api/extract", {

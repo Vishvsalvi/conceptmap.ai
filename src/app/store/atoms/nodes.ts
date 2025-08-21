@@ -2,12 +2,12 @@ import { atom } from "recoil";
 
 export const reactNode  = atom({
     key: 'reactNode',
-    default: []
+    default: [] as any[]
 })
 
 export const reactEdge = atom({
     key: 'reactEdge',
-    default: []
+    default: [] as any[]
 })
 
 export const relativeParentNodePosition = atom({
@@ -18,4 +18,9 @@ export const relativeParentNodePosition = atom({
 export const selectedNode = atom({
     key: 'selectedNode',
     default: {}
+})
+
+export const selectedNodes = atom({
+    key: 'selectedNodes',
+    default: [] as any[]
 })

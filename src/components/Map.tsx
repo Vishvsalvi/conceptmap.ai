@@ -22,7 +22,7 @@ import VideoNode from '@/components/customNode/VideoNode';
 import TermNode from '@/components/customNode/TermNode';
 import ConceptNode from '@/components/customNode/ConceptNode';
 import { targetNode } from '@/app/store/atoms/nodelabel';
-import { reactNode, reactEdge, relativeParentNodePosition, selectedNode } from '@/app/store/atoms/nodes'
+import { reactNode, reactEdge, relativeParentNodePosition, selectedNode, selectedNodes } from '@/app/store/atoms/nodes'
 import Menubar from './Menubar';
 
 interface Node {
@@ -48,18 +48,19 @@ interface MapProps {
   fetchedEdges?: Edge[];
 }
 
-export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapProps) {  
-  
+export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapProps) {
+
   const [nodes, setNodes] = useRecoilState(reactNode);
   const [edges, setEdges] = useRecoilState(reactEdge);
   const setSelectedNode = useSetRecoilState(selectedNode);
-  
+  const [selectedNodesList, setSelectedNodesList] = useRecoilState(selectedNodes);
+
   useEffect(() => {
     if(fetchedNodes && fetchedEdges) {
       setNodes(fetchedNodes);
       setEdges(fetchedEdges);
     }
-    
+
   },[])
 
   
@@ -85,7 +86,7 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
   );
 
   const onNodesChange = useCallback(
-    
+
     (changes) => {
       setNodes((nds) => {
         const clonedNodes = structuredClone(nds);
@@ -94,6 +95,24 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
     },
     [setNodes]
   );
+
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    // Check if Shift key is pressed for multi-selection
+    if (event.shiftKey) {
+      const isAlreadySelected = selectedNodesList.some(selectedNode => selectedNode.id === node.id);
+
+      if (isAlreadySelected) {
+        // Remove from selection
+        setSelectedNodesList(prev => prev.filter(selectedNode => selectedNode.id !== node.id));
+      } else {
+        // Add to selection
+        setSelectedNodesList(prev => [...prev, node]);
+      }
+    } else {
+      // Single selection - replace current selection
+      setSelectedNodesList([node]);
+    }
+  }, [selectedNodesList, setSelectedNodesList]);
   
 
   const getNodeData = useCallback(() => {
@@ -165,32 +184,9 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
       id: new Date().getTime().toString(),
       type: 'titleNode',
       position,
-      data: { label: content, color: "#FFFFFF" },
-      // Don't add animation class immediately
+      data: { label: content, color: "#FFFFFF" }
     };
     setNodes([...nodes, newNode]);
-    
-    // Add animation class after a tiny delay to ensure node is rendered first
-    setTimeout(() => {
-      setNodes(prevNodes => 
-        prevNodes.map(node => 
-          node.id === newNode.id 
-            ? { ...node, className: 'new-node-animation' }
-            : node
-        )
-      );
-    }, 50);
-    
-    // Remove animation class after animation completes
-    setTimeout(() => {
-      setNodes(prevNodes => 
-        prevNodes.map(node => 
-          node.id === newNode.id 
-            ? { ...node, className: '' }
-            : node
-        )
-      );
-    }, 2500); // Adjusted for animation delay + duration
     
     return newNode.id; // Return node ID instead of position
   }
@@ -226,17 +222,23 @@ export default function Map({mapname, fetchedNodes, fetchedEdges, mapId}: MapPro
 
     <div style={{ width: '100vw', height: '100vh' }}>
       <ReactFlow
-        nodes={nodes.map(node => ({
-          ...node,
-          data: {
-            ...node.data,
-            onColorChange: (color: string) => updateNodeData(node.id, { color })
+        nodes={nodes.map(node => {
+          const isSelected = selectedNodesList.some(selectedNode => selectedNode.id === node.id);
+          return {
+            ...node,
+            selected: isSelected,
+            className: isSelected ? 'selected-node' : '',
+            data: {
+              ...node.data,
+              onColorChange: (color: string) => updateNodeData(node.id, { color })
+            }
           }
-        }))}
+        })}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
         fitView
 
